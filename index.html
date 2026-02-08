@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KP Kelu Master Family Tree</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .tree-container { display: flex; justify-content: center; min-width: max-content; padding-top: 40px; }
+        .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; transition: all 0.5s; }
+        .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all 0.5s; }
+        .tree li::before, .tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #ccc; width: 50%; height: 20px; }
+        .tree li::after { right: auto; left: 50%; border-left: 2px solid #ccc; }
+        .tree li:only-child::after, .tree li:only-child::before { display: none; }
+        .tree li:only-child { padding-top: 0; }
+        .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
+        .tree li:last-child::before { border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
+        .tree li:first-child::after { border-radius: 5px 0 0 0; }
+        .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; }
+        .node-box { border: 2px solid #2c3e50; padding: 10px; background: #fff; display: inline-block; border-radius: 8px; min-width: 150px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .name { font-weight: bold; font-size: 14px; color: #2c3e50; }
+        .controls { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px; }
+        input { width: 110px; font-size: 11px; border: 1px solid #ddd; padding: 3px; border-radius: 4px; }
+        button { font-size: 10px; cursor: pointer; border: none; padding: 4px; border-radius: 4px; color: white; }
+        .btn-add { background: #27ae60; }
+        .btn-del { background: #e74c3c; }
+        .header { text-align: center; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KP Kelu Master & PV Devi Amma Family Tree</h1>
+        <p>Type a name and click "Add" to expand any branch. Changes save to your device.</p>
+    </div>
+    <div class="tree-container"><div class="tree" id="tree-root"></div></div>
+<script>
+    const baseData = {
+        name: "KP Kelu Master & PV Devi Amma",
+        children: [
+            { name: "PV Devaki & Chindukuti Master AK", children: [{name:"Raveendran PM"},{name:"Hareendran PV"},{name:"Surendran PV"},{name:"Shyma PV"},{name:"Shaseendran PV"}] },
+            { name: "PV Madhavan & Sarashwathi CP", children: [{name:"Rajeshwari CP"},{name:"Usha CP"},{name:"Prakash CP"},{name:"Praveen CP"},{name:"Pratheesh CP"}] },
+            { name: "PV Raghavan & Radha PK", children: [{name:"Nisha PK"},{name:"Sheena PK"},{name:"Seema PK"},{name:"Sharioop PK"},{name:"Shiju PK"}] },
+            { name: "PV Krishnan & Prasanna KC", children: [{name:"Rajagopal KC"},{name:"Pramod KC"},{name:"Santosh KC"},{name:"Reena KC (Late)"},{name:"Roja KC"}] },
+            { name: "PV Kuttiyappa & Janaki", children: [{name:"Sathyaja"},{name:"Sarija"},{name:"Savitha"},{name:"Sajima"},{name:"Sandeep"}] },
+            { name: "PV Chandran & Pushpa", children: [{name:"Ranjith"},{name:"Raji"},{name:"Ramya"}] },
+            { name: "PV Narayanan Kutty & Thankamani", children: [{name:"Reshma"},{name:"Shimna"},{name:"Manju"}] },
+            { name: "PV Kamala & C Soman Nambiar", children: [{name:"Shyam Krishnan"},{name:"Sharaj Krishnan"}] }
+        ]
+    };
+    let tree = JSON.parse(localStorage.getItem('familyTreeLive')) || baseData;
+    function render() { document.getElementById('tree-root').innerHTML = `<ul>${gen(tree)}</ul>`; }
+    function gen(p, path = "") {
+        let html = `<li><div class="node-box"><span class="name">${p.name}</span><div class="controls">
+            <input type="text" placeholder="Add Child" id="in-${path}">
+            <button class="btn-add" onclick="add('${path}')">Add</button>
+            ${path !== "" ? `<button class="btn-del" onclick="rem('${path}')">Remove</button>` : ''}
+        </div></div>`;
+        if (p.children && p.children.length > 0) {
+            html += `<ul>${p.children.map((c, i) => gen(c, path === "" ? `${i}` : `${path}-${i}`)).join('')}</ul>`;
+        }
+        return html + `</li>`;
+    }
+    window.add = function(path) {
+        const val = document.getElementById(`in-${path}`).value;
+        if (!val) return;
+        let t = tree;
+        if (path !== "") path.split('-').forEach(idx => t = t.children[idx]);
+        if (!t.children) t.children = [];
+        t.children.push({ name: val, children: [] });
+        save();
+    }
+    window.rem = function(path) {
+        const idxs = path.split('-');
+        const last = idxs.pop();
+        let t = tree;
+        idxs.forEach(i => t = t.children[i]);
+        t.children.splice(last, 1);
+        save();
+    }
+    function save() { localStorage.setItem('familyTreeLive', JSON.stringify(tree)); render(); }
+    render();
+</script>
+</body>
+</html>
