@@ -2,12 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>KP Kelu Master Family Tree</title>
+    <title>KP Kelu Master Family Tree Dashboard</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .tree-container { display: flex; justify-content: center; min-width: max-content; padding-top: 40px; }
-        .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; transition: all 0.5s; }
-        .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all 0.5s; }
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
+        .dashboard-header { 
+            background: white; padding: 20px; border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; 
+            margin-bottom: 30px; position: sticky; top: 10px; z-index: 1000;
+        }
+        .counter-badge {
+            background: var(--primary); color: white; padding: 10px 20px;
+            border-radius: 50px; font-size: 1.2rem; font-weight: bold;
+            display: inline-block; margin-top: 10px;
+        }
+        .tree-container { display: flex; justify-content: center; min-width: max-content; }
+        .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; }
+        .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; }
         .tree li::before, .tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #ccc; width: 50%; height: 20px; }
         .tree li::after { right: auto; left: 50%; border-left: 2px solid #ccc; }
         .tree li:only-child::after, .tree li:only-child::before { display: none; }
@@ -16,64 +27,57 @@
         .tree li:last-child::before { border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
         .tree li:first-child::after { border-radius: 5px 0 0 0; }
         .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; }
-        .node-box { border: 2px solid #2c3e50; padding: 10px; background: #fff; display: inline-block; border-radius: 8px; min-width: 150px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .name { font-weight: bold; font-size: 14px; color: #2c3e50; }
-        .controls { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px; }
+        .node-box { border: 2px solid var(--primary); padding: 10px; background: #fff; display: inline-block; border-radius: 8px; min-width: 150px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .name { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; }
+        .controls { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #eee; padding-top: 8px; }
         input { width: 110px; font-size: 11px; border: 1px solid #ddd; padding: 3px; border-radius: 4px; }
         button { font-size: 10px; cursor: pointer; border: none; padding: 4px; border-radius: 4px; color: white; }
-        .btn-add { background: #27ae60; }
-        .btn-del { background: #e74c3c; }
-        .header { text-align: center; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .btn-add { background: var(--success); }
+        .btn-del { background: var(--danger); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>KP Kelu Master & PV Devi Amma Family Tree</h1>
-        <p>Type a name and click "Add" to expand any branch. Changes save to your device.</p>
+    <div class="dashboard-header">
+        <h1 style="margin:0;">KP Kelu Master Family Lineage</h1>
+        <div class="counter-badge">Total Family Members: <span id="member-count">0</span></div>
     </div>
     <div class="tree-container"><div class="tree" id="tree-root"></div></div>
 <script>
-    const baseData = {
-        name: "KP Kelu Master & PV Devi Amma",
-        children: [
-            { name: "PV Devaki & Chindukuti Master AK", children: [{name:"Raveendran PM"},{name:"Hareendran PV"},{name:"Surendran PV"},{name:"Shyma PV"},{name:"Shaseendran PV"}] },
-            { name: "PV Madhavan & Sarashwathi CP", children: [{name:"Rajeshwari CP"},{name:"Usha CP"},{name:"Prakash CP"},{name:"Praveen CP"},{name:"Pratheesh CP"}] },
-            { name: "PV Raghavan & Radha PK", children: [{name:"Nisha PK"},{name:"Sheena PK"},{name:"Seema PK"},{name:"Sharioop PK"},{name:"Shiju PK"}] },
-            { name: "PV Krishnan & Prasanna KC", children: [{name:"Rajagopal KC"},{name:"Pramod KC"},{name:"Santosh KC"},{name:"Reena KC (Late)"},{name:"Roja KC"}] },
-            { name: "PV Kuttiyappa & Janaki", children: [{name:"Sathyaja"},{name:"Sarija"},{name:"Savitha"},{name:"Sajima"},{name:"Sandeep"}] },
-            { name: "PV Chandran & Pushpa", children: [{name:"Ranjith"},{name:"Raji"},{name:"Ramya"}] },
-            { name: "PV Narayanan Kutty & Thankamani", children: [{name:"Reshma"},{name:"Shimna"},{name:"Manju"}] },
-            { name: "PV Kamala & C Soman Nambiar", children: [{name:"Shyam Krishnan"},{name:"Sharaj Krishnan"}] }
-        ]
-    };
+    // Master data synced from your backup.txt file 
+    const baseData = {"name":"KP Kelu Master & PV Devi Amma","children":[{"name":"PV Devaki & Chindukuti Master AK","children":[{"name":"Ravi and Baby","children":[{"name":"Rasitha & Sandeep","children":[{"name":"Ashiq","children":[]}]},{"name":"Rejeesh & Veena","children":[]}]},{"name":"Hari and Vineetha","children":[{"name":"Sajna & Vinoy","children":[{"name":"Adidev","children":[]},{"name":"Vishnudev","children":[]}]},{"name":"Rejina & Prabhath","children":[{"name":"Panchami","children":[]},{"name":"Palomi","children":[]}]},{"name":"Lijina & Jijesh","children":[{"name":"Drupath","children":[]}]}]},{"name":"Suru","children":[]},{"name":"Shyamala & Mohanan","children":[{"name":"Harshaj","children":[]},{"name":"Chinju & Nithin","children":[{"name":"Ashmika","children":[]}]}]},{"name":"Sashi & Swapna","children":[{"name":"Dilara","children":[]}]}]},{"name":"PV Madhavan & Sarashwathi CP","children":[{"name":"Raaji & Chandran","children":[{"name":"Amrith & Deepu","children":[]},{"name":"Chinchu & Sreelal","children":[]}]},{"name":"Usha & Chandran","children":[{"name":"Kunku & Arjun","children":[]}]},{"name":"Pravi & Dhanya","children":[{"name":"Aadish","children":[]}]},{"name":"Pratheesh","children":[]},{"name":"Prakash & Mini","children":[{"name":"Kannan","children":[]},{"name":"Kichu","children":[]}]}]},{"name":"PV Raghavan & Radha PK","children":[{"name":"Nisha & Manoj","children":[{"name":"Malu","children":[]},{"name":"Kunju & Sarath","children":[]},{"name":"Chinnu","children":[]}]},{"name":"Sheena & Unni","children":[{"name":"Unnikuttan & Anjana","children":[]},{"name":"Ammu","children":[]}]},{"name":"Seema & Manoj","children":[{"name":"Megha","children":[]},{"name":"Achu","children":[]}]},{"name":"Shanoop & Bindhu","children":[{"name":"Aravind","children":[]},{"name":"Neeraj","children":[]}]},{"name":"Shimmi & Neenu","children":[{"name":"Nyla","children":[]}]}]},{"name":"PV Krishnan & Prasanna KC","children":[{"name":"Pramod & Ramya","children":[{"name":"Vishnu","children":[]},{"name":"Nidhi","children":[]}]},{"name":"Santosh & Malathi","children":[{"name":"Gauri Shankar","children":[]},{"name":"Dhanur","children":[]}]},{"name":"Manoj & Varsha","children":[{"name":"Janak","children":[]},{"name":"Adya","children":[]}]},{"name":"Roja & Vinod","children":[{"name":"Roshan","children":[]},{"name":"Rishika","children":[]}]},{"name":"Rajan & Sunitha","children":[{"name":"Vishnu","children":[]},{"name":"Arora","children":[]}]},{"name":"Reena & Prakashan","children":[{"name":"Anurag","children":[]}]}]},{"name":"PV Kuttiyappa & Janaki","children":[{"name":"Raji","children":[{"name":"Darsh","children":[]}]},{"name":"Ramya","children":[{"name":"Lakshmi","children":[]},{"name":"Lakshith","children":[]}]},{"name":"Ranjith","children":[]}]},{"name":"PV Chandran & Pushpa","children":[{"name":"Kuttan & Anupama","children":[{"name":"Rishikesh","children":[]},{"name":"Shivatej","children":[]}]},{"name":"Mani & Ridhuna","children":[{"name":"Aizel Nyra","children":[]}]}]},{"name":"PV Narayanan Kutty & Thankamani","children":[{"name":"Reshma & Anoop","children":[{"name":"Akshara","children":[]},{"name":"Akshay","children":[]}]},{"name":"Chinnu & Sajith","children":[{"name":"Kashyap","children":[]}]},{"name":"Manju & Shaji","children":[{"name":"Advik","children":[]}]}]},{"name":"PV Kamala & C Soman Nambiar","children":[{"name":"Sathyaja & Murali","children":[{"name":"Nandu","children":[]}]},{"name":"Sarija & Suresh","children":[{"name":"Aathira & Dhanesh","children":[{"name":"Karthu","children":[]},{"name":"Keshu","children":[]}]},{"name":"Ashitha & Shijin","children":[{"name":"Kannan","children":[]}]},{"name":"Appu","children":[]}]},{"name":"Savitha & Madhu","children":[{"name":"Sayanth","children":[]},{"name":"Jithend","children":[]}]},{"name":"Sajima & Rajesh","children":[{"name":"Ashima","children":[]}]},{"name":"Sandeep & Nimisha","children":[{"name":"Aumika","children":[]}]}]}]};
+
     let tree = JSON.parse(localStorage.getItem('familyTreeLive')) || baseData;
-    function render() { document.getElementById('tree-root').innerHTML = `<ul>${gen(tree)}</ul>`; }
-    function gen(p, path = "") {
-        let html = `<li><div class="node-box"><span class="name">${p.name}</span><div class="controls">
+    function countMembers(node) {
+        let count = 1;
+        if (node.children) { node.children.forEach(child => count += countMembers(child)); }
+        return count;
+    }
+    function render() {
+        document.getElementById('member-count').innerText = countMembers(tree);
+        document.getElementById('tree-root').innerHTML = `<ul>${generateHTML(tree)}</ul>`;
+    }
+    function generateHTML(person, path = "") {
+        let html = `<li><div class="node-box"><span class="name">${person.name}</span><div class="controls">
             <input type="text" placeholder="Add Child" id="in-${path}">
-            <button class="btn-add" onclick="add('${path}')">Add</button>
-            ${path !== "" ? `<button class="btn-del" onclick="rem('${path}')">Remove</button>` : ''}
+            <button class="btn-add" onclick="addChild('${path}')">Add</button>
+            ${path !== "" ? `<button class="btn-del" onclick="removeChild('${path}')">Remove</button>` : ''}
         </div></div>`;
-        if (p.children && p.children.length > 0) {
-            html += `<ul>${p.children.map((c, i) => gen(c, path === "" ? `${i}` : `${path}-${i}`)).join('')}</ul>`;
+        if (person.children && person.children.length > 0) {
+            html += `<ul>${person.children.map((c, i) => generateHTML(c, path === "" ? `${i}` : `${path}-${i}`)).join('')}</ul>`;
         }
         return html + `</li>`;
     }
-    window.add = function(path) {
-        const val = document.getElementById(`in-${path}`).value;
-        if (!val) return;
-        let t = tree;
-        if (path !== "") path.split('-').forEach(idx => t = t.children[idx]);
+    window.addChild = function(path) {
+        const input = document.getElementById(`in-${path}`);
+        if (!input.value.trim()) return;
+        let t = tree; if (path !== "") path.split('-').forEach(idx => t = t.children[idx]);
         if (!t.children) t.children = [];
-        t.children.push({ name: val, children: [] });
+        t.children.push({ name: input.value.trim(), children: [] });
         save();
     }
-    window.rem = function(path) {
-        const idxs = path.split('-');
-        const last = idxs.pop();
-        let t = tree;
-        idxs.forEach(i => t = t.children[i]);
-        t.children.splice(last, 1);
+    window.removeChild = function(path) {
+        const idxs = path.split('-'); const last = idxs.pop(); let t = tree;
+        idxs.forEach(i => t = t.children[i]); t.children.splice(last, 1);
         save();
     }
     function save() { localStorage.setItem('familyTreeLive', JSON.stringify(tree)); render(); }
