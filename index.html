@@ -5,20 +5,27 @@
     <title>KP Kelu Master Family Tree Dashboard</title>
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; overflow: hidden; }
+        
         .dashboard-header { 
-            background: white; padding: 20px; border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; 
-            margin-bottom: 30px; position: sticky; top: 10px; z-index: 1000;
+            background: white; padding: 15px; border-bottom: 2px solid #ddd;
+            text-align: center; position: fixed; top: 0; width: 100%; z-index: 1000;
         }
         .counter-badge {
-            background: var(--primary); color: white; padding: 10px 20px;
-            border-radius: 50px; font-size: 1.2rem; font-weight: bold;
-            display: inline-block; margin-top: 10px;
+            background: var(--primary); color: white; padding: 5px 15px;
+            border-radius: 20px; font-size: 1rem; font-weight: bold;
+            display: inline-block; margin-top: 5px;
         }
-        .tree-container { display: flex; justify-content: center; min-width: max-content; }
+
+        /* Pan & Zoom Container */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; overflow: auto; padding-top: 120px; }
+        #viewport:active { cursor: grabbing; }
+
+        .tree { display: inline-block; padding: 50px; transform-origin: top center; }
         .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; }
-        .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; }
+        .tree li { text-align: center; list-style-type: none; position: relative; padding: 20px 10px 0 10px; }
+        
+        /* Lines */
         .tree li::before, .tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #ccc; width: 50%; height: 20px; }
         .tree li::after { right: auto; left: 50%; border-left: 2px solid #ccc; }
         .tree li:only-child::after, .tree li:only-child::before { display: none; }
@@ -27,35 +34,45 @@
         .tree li:last-child::before { border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
         .tree li:first-child::after { border-radius: 5px 0 0 0; }
         .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; }
-        .node-box { border: 2px solid var(--primary); padding: 10px; background: #fff; display: inline-block; border-radius: 8px; min-width: 150px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .name { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; }
+
+        /* Box Styling */
+        .node-box { border: 2px solid var(--primary); padding: 10px; background: #fff; display: inline-block; border-radius: 8px; min-width: 160px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .name { font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px; }
         .controls { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #eee; padding-top: 8px; }
-        input { width: 110px; font-size: 11px; border: 1px solid #ddd; padding: 3px; border-radius: 4px; }
-        button { font-size: 10px; cursor: pointer; border: none; padding: 4px; border-radius: 4px; color: white; }
+        input { width: 120px; font-size: 10px; border: 1px solid #ddd; padding: 3px; border-radius: 4px; }
+        button { font-size: 9px; cursor: pointer; border: none; padding: 4px; border-radius: 4px; color: white; }
         .btn-add { background: var(--success); }
         .btn-del { background: var(--danger); }
     </style>
 </head>
 <body>
+
     <div class="dashboard-header">
-        <h1 style="margin:0;">KP Kelu Master Family Lineage</h1>
+        <h2 style="margin:0;">KP Kelu Master Family Lineage</h2>
         <div class="counter-badge">Total Family Members: <span id="member-count">0</span></div>
+        <p style="font-size: 11px; margin: 5px 0 0 0;">Drag to move | Use browser zoom to resize</p>
     </div>
-    <div class="tree-container"><div class="tree" id="tree-root"></div></div>
+
+    <div id="viewport">
+        <div class="tree" id="tree-root"></div>
+    </div>
+
 <script>
-    // Master data synced from your backup.txt file 
     const baseData = {"name":"KP Kelu Master & PV Devi Amma","children":[{"name":"PV Devaki & Chindukuti Master AK","children":[{"name":"Ravi and Baby","children":[{"name":"Rasitha & Sandeep","children":[{"name":"Ashiq","children":[]}]},{"name":"Rejeesh & Veena","children":[]}]},{"name":"Hari and Vineetha","children":[{"name":"Sajna & Vinoy","children":[{"name":"Adidev","children":[]},{"name":"Vishnudev","children":[]}]},{"name":"Rejina & Prabhath","children":[{"name":"Panchami","children":[]},{"name":"Palomi","children":[]}]},{"name":"Lijina & Jijesh","children":[{"name":"Drupath","children":[]}]}]},{"name":"Suru","children":[]},{"name":"Shyamala & Mohanan","children":[{"name":"Harshaj","children":[]},{"name":"Chinju & Nithin","children":[{"name":"Ashmika","children":[]}]}]},{"name":"Sashi & Swapna","children":[{"name":"Dilara","children":[]}]}]},{"name":"PV Madhavan & Sarashwathi CP","children":[{"name":"Raaji & Chandran","children":[{"name":"Amrith & Deepu","children":[]},{"name":"Chinchu & Sreelal","children":[]}]},{"name":"Usha & Chandran","children":[{"name":"Kunku & Arjun","children":[]}]},{"name":"Pravi & Dhanya","children":[{"name":"Aadish","children":[]}]},{"name":"Pratheesh","children":[]},{"name":"Prakash & Mini","children":[{"name":"Kannan","children":[]},{"name":"Kichu","children":[]}]}]},{"name":"PV Raghavan & Radha PK","children":[{"name":"Nisha & Manoj","children":[{"name":"Malu","children":[]},{"name":"Kunju & Sarath","children":[]},{"name":"Chinnu","children":[]}]},{"name":"Sheena & Unni","children":[{"name":"Unnikuttan & Anjana","children":[]},{"name":"Ammu","children":[]}]},{"name":"Seema & Manoj","children":[{"name":"Megha","children":[]},{"name":"Achu","children":[]}]},{"name":"Shanoop & Bindhu","children":[{"name":"Aravind","children":[]},{"name":"Neeraj","children":[]}]},{"name":"Shimmi & Neenu","children":[{"name":"Nyla","children":[]}]}]},{"name":"PV Krishnan & Prasanna KC","children":[{"name":"Pramod & Ramya","children":[{"name":"Vishnu","children":[]},{"name":"Nidhi","children":[]}]},{"name":"Santosh & Malathi","children":[{"name":"Gauri Shankar","children":[]},{"name":"Dhanur","children":[]}]},{"name":"Manoj & Varsha","children":[{"name":"Janak","children":[]},{"name":"Adya","children":[]}]},{"name":"Roja & Vinod","children":[{"name":"Roshan","children":[]},{"name":"Rishika","children":[]}]},{"name":"Rajan & Sunitha","children":[{"name":"Vishnu","children":[]},{"name":"Arora","children":[]}]},{"name":"Reena & Prakashan","children":[{"name":"Anurag","children":[]}]}]},{"name":"PV Kuttiyappa & Janaki","children":[{"name":"Raji","children":[{"name":"Darsh","children":[]}]},{"name":"Ramya","children":[{"name":"Lakshmi","children":[]},{"name":"Lakshith","children":[]}]},{"name":"Ranjith","children":[]}]},{"name":"PV Chandran & Pushpa","children":[{"name":"Kuttan & Anupama","children":[{"name":"Rishikesh","children":[]},{"name":"Shivatej","children":[]}]},{"name":"Mani & Ridhuna","children":[{"name":"Aizel Nyra","children":[]}]}]},{"name":"PV Narayanan Kutty & Thankamani","children":[{"name":"Reshma & Anoop","children":[{"name":"Akshara","children":[]},{"name":"Akshay","children":[]}]},{"name":"Chinnu & Sajith","children":[{"name":"Kashyap","children":[]}]},{"name":"Manju & Shaji","children":[{"name":"Advik","children":[]}]}]},{"name":"PV Kamala & C Soman Nambiar","children":[{"name":"Sathyaja & Murali","children":[{"name":"Nandu","children":[]}]},{"name":"Sarija & Suresh","children":[{"name":"Aathira & Dhanesh","children":[{"name":"Karthu","children":[]},{"name":"Keshu","children":[]}]},{"name":"Ashitha & Shijin","children":[{"name":"Kannan","children":[]}]},{"name":"Appu","children":[]}]},{"name":"Savitha & Madhu","children":[{"name":"Sayanth","children":[]},{"name":"Jithend","children":[]}]},{"name":"Sajima & Rajesh","children":[{"name":"Ashima","children":[]}]},{"name":"Sandeep & Nimisha","children":[{"name":"Aumika","children":[]}]}]}]};
 
     let tree = JSON.parse(localStorage.getItem('familyTreeLive')) || baseData;
+
     function countMembers(node) {
         let count = 1;
         if (node.children) { node.children.forEach(child => count += countMembers(child)); }
         return count;
     }
+
     function render() {
         document.getElementById('member-count').innerText = countMembers(tree);
         document.getElementById('tree-root').innerHTML = `<ul>${generateHTML(tree)}</ul>`;
     }
+
     function generateHTML(person, path = "") {
         let html = `<li><div class="node-box"><span class="name">${person.name}</span><div class="controls">
             <input type="text" placeholder="Add Child" id="in-${path}">
@@ -67,6 +84,7 @@
         }
         return html + `</li>`;
     }
+
     window.addChild = function(path) {
         const input = document.getElementById(`in-${path}`);
         if (!input.value.trim()) return;
@@ -75,11 +93,13 @@
         t.children.push({ name: input.value.trim(), children: [] });
         save();
     }
+
     window.removeChild = function(path) {
         const idxs = path.split('-'); const last = idxs.pop(); let t = tree;
         idxs.forEach(i => t = t.children[i]); t.children.splice(last, 1);
         save();
     }
+
     function save() { localStorage.setItem('familyTreeLive', JSON.stringify(tree)); render(); }
     render();
 </script>
